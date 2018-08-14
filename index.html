@@ -1,0 +1,291 @@
+<html>
+<head>
+  <script>
+  window.onload = function() {
+    console.log("LOADED");
+
+    //Configuration variables
+    var updateInterval = 20 //in ms
+    var numberElements = 200;
+
+    //Globals
+    var updateCount = 0;
+
+    // Chart Objects
+    var xAccelChart = $("#xAccelChart");
+    var yAccelChart = $("#yAccelChart");
+    var zAccelChart = $("#zAccelChart");
+    var rollChart = $("#rollChart");
+    var pitchChart = $("#pitchChart");
+    var yawChart = $("#yawChart");
+
+    //chart instances & configuration
+    var commonOptions = {
+        scales: {
+          xAxes: [{
+            type: 'time',
+            time: {
+              displayFormats: {
+                millisecond: 'mm:ss:SSS'
+              }
+            }
+          }],
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        },
+        legend: {display: false},
+        tooltips:{
+          enabled: false
+        }
+    };
+    var xAccelChartInstance = new Chart(xAccelChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "X Acceleration",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Acceleration - X",
+            fontSize: 18
+          }
+        })
+    });
+
+    var yAccelChartInstance = new Chart(yAccelChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "Y Acceleration",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Acceleration - Y",
+            fontSize: 18
+          }
+        })    });
+
+    var zAccelChartInstance = new Chart(zAccelChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "Z Acceleration",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Acceleration - Z",
+            fontSize: 18
+          }
+        })
+      });
+
+    var rollChartInstance = new Chart(rollChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "Roll",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Roll",
+            fontSize: 18
+          }
+        })
+          });
+
+    var pitchChartInstance = new Chart(pitchChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "Pitch",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Pitch",
+            fontSize: 18
+          }
+        })
+          });
+
+    var yawChartInstance = new Chart(yawChart, {
+        type: 'line',
+        data: {
+          datasets: [{
+              label: "Yaw",
+              data: 0,
+              fill: false,
+              borderColor: '#343e9a',
+              borderWidth: 1
+          }]
+        },
+        options: Object.assign({}, commonOptions, {
+          title:{
+            display: true,
+            text: "Yaw",
+            fontSize: 18
+          }
+        })
+          });
+
+    //addData pushes the latest readings from readings.json into each of the relevant charts by indexing the keys
+    //Once the number of elements is reached based uppon the variable numberElements the oldest data is shifted out
+    function addData(data) {
+        xAccelChartInstance.data.labels.push(new Date());
+        xAccelChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['xA'])});
+        yAccelChartInstance.data.labels.push(new Date());
+        yAccelChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['yA'])});
+        zAccelChartInstance.data.labels.push(new Date());
+        zAccelChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['zA'])});
+        rollChartInstance.data.labels.push(new Date());
+        rollChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['roll'])});
+        pitchChartInstance.data.labels.push(new Date());
+        pitchChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['pitch'])});
+        yawChartInstance.data.labels.push(new Date());
+        yawChartInstance.data.datasets.forEach((dataset) =>{dataset.data.push(data['yaw'])});
+        if(updateCount > numberElements){
+          xAccelChartInstance.data.labels.shift();
+          xAccelChartInstance.data.datasets[0].data.shift();
+          yAccelChartInstance.data.labels.shift();
+          yAccelChartInstance.data.datasets[0].data.shift();
+          zAccelChartInstance.data.labels.shift();
+          zAccelChartInstance.data.datasets[0].data.shift();
+          rollChartInstance.data.labels.shift();
+          rollChartInstance.data.datasets[0].data.shift();
+          pitchChartInstance.data.labels.shift();
+          pitchChartInstance.data.datasets[0].data.shift();
+          yawChartInstance.data.labels.shift();
+          yawChartInstance.data.datasets[0].data.shift();
+        }
+        else updateCount++;
+        xAccelChartInstance.update();
+        yAccelChartInstance.update();
+        zAccelChartInstance.update();
+        rollChartInstance.update();
+        pitchChartInstance.update();
+        yawChartInstance.update();
+        };
+
+    //Simple AJAX request to retrieve the readings.json file. This file is updated by
+    // the python script running on the raspberry Pi Streaming_IMU_logger.py
+    // the function calls itself at the updateInterval
+    function updateData() {
+      console.log("Update Data");
+      $.getJSON("readings.json", addData);
+      setTimeout(updateData,updateInterval);
+    }
+
+    // calls the updateData function for the first time.
+    updateData();
+  }
+</script>
+  <style>
+  .container{
+    display:flex;
+  }
+
+  .label{
+    flex:1;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .x{
+    flex:3;
+    text-align: center;
+    background-color: rgba(235, 113, 101, 0.73);
+    margin: 10px;
+  }
+
+  .y{
+    flex:3;
+    text-align: center;
+    background-color: rgba(70, 163, 71, 0.64);
+    margin-top: 10px;
+    margin-bottom:10px;
+}
+  .z{
+    flex:3;
+    text-align: center;
+    background-color:rgba(70, 140, 215, 0.74) ;
+    margin:10px;
+  }
+
+  h1{
+    text-align: center;
+  }
+
+  </style>
+    <!-->Offline copies of the Jquery and Chart.js libraries are stored on the pi although CDNs could be used <-->
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="Chart.bundle.js"></script>
+</head>
+<body>
+  <h1>Wave buoy real time stream</h1>
+  <div id="labelAccel" class="label">
+    <h2> Acceleration </h2>
+  </div>
+  <div id="accelContainer" class="container">
+    <!--> Every canvas must be inside its own div for chart.js to work<-->
+    <div id="xAccel" class="x">
+      <canvas id="xAccelChart"></canvas>
+    </div><!--xAccel-->
+    <div id="yAccel" class="y">
+
+      <canvas id="yAccelChart"></canvas>
+    </div><!--yAccel-->
+    <div id="zAccel" class="z">
+
+      <canvas id="zAccelChart"></canvas>
+    </div><!--zAccel-->
+  </div><!--accelContainer-->
+  <div id="labelGyro" class="label">
+    <h2> Heading </h2>
+  </div>
+
+  <div id="orientationContainer" class="container">
+    <div id="Roll" class="x">
+      <canvas id="rollChart"></canvas>
+    </div><!--xgyro-->
+    <div id="Pitch" class="y">
+      <canvas id="pitchChart"></canvas>
+    </div><!--ygyro-->
+    <div id="Yaw" class="z">
+      <canvas id="yawChart"></canvas>
+    </div><!--zgyro-->
+  </div><!--gyroContainer-->
+
+</body>
+</html>
